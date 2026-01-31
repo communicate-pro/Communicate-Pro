@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Communicate Pro - Master Your Communication Skills</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+    
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .course-card {
+            transition: all 0.3s ease;
+        }
+        
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .recording-wave {
+            animation: wave 1s ease-in-out infinite;
+        }
+        
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
+        }
+        
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+        }
+        
+        .notification-toast {
+            animation: toastSlide 0.3s ease-out;
+        }
+        
+        @keyframes toastSlide {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .typing-indicator span {
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .audio-visualizer {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            height: 40px;
+        }
+        
+        .audio-bar {
+            width: 4px;
+            background: #667eea;
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback, createContext, useContext } = React;
+        
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "communicate-pro.firebaseapp.com",
+            projectId: "communicate-pro",
+            storageBucket: "communicate-pro.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abc123def456"
+        };
+        
+        // Initialize Firebase (mock for demo)
+        let firebase = window.firebase;
+        let db, auth, storage, messaging;
+        
+        try {
+            if (firebase && !firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                auth = firebase.auth();
+                storage = firebase.storage();
+                messaging = firebase.messaging();
+            }
+        } catch (e) {
+            console.log("Firebase demo mode");
+        }
+        
+        // Context
+        const AppContext = createContext();
+        
+        // Mock Data
+        const COURSES = [
+            {
+                id: 1,
+                title: "Public Speaking Mastery",
+                description: "Overcome stage fright and deliver powerful presentations",
+                icon: "mic",
+                color: "from-blue-500 to-cyan-500",
+                modules: 12,
+                duration: "6 hours",
+                level: "Beginner",
+                progress: 0,
+                topics: ["Voice Control", "Body Language", "Storytelling", "Q&A Handling"]
+            },
+            {
+                id: 2,
+                title: "Executive Communication",
+                description: "Lead with confidence in boardrooms and meetings",
+                icon: "users",
+                color: "from-purple-500 to-pink-500",
+                modules: 8,
+                duration: "4 hours",
+                level: "Advanced",
+                progress: 0,
+                topics: ["Strategic Messaging", "Crisis Communication", "Stakeholder Management"]
+            },
+            {
+                id: 3,
+                title: "Persuasive Writing",
+                description: "Craft compelling emails, proposals, and documents",
+                icon: "pen-tool",
+                color: "from-orange-500 to-red-500",
+                modules: 10,
+                duration: "5 hours",
+                level: "Intermediate",
+                progress: 0,
+                topics: ["Email Mastery", "Proposal Writing", "Copywriting", "Editing"]
+            },
+            {
+                id: 4,
+                title: "Active Listening",
+                description: "Master the art of understanding and empathy",
+                icon: "ear",
+                color: "from-green-500 to-emerald-500",
+                modules: 6,
+                duration: "3 hours",
+                level: "Beginner",
+                progress: 0,
+                topics: ["Empathy Building", "Questioning Techniques", "Feedback Loop"]
+            },
+            {
+                id: 5,
+                title: "Conflict Resolution",
+                description: "Navigate difficult conversations with grace",
+                icon: "shield",
+                color: "from-red-500 to-rose-500",
+                modules: 8,
+                duration: "4 hours",
+                level: "Intermediate",
+                progress: 0,
+                topics: ["De-escalation", "Negotiation", "Mediation", "Win-Win Solutions"]
+            },
+            {
+                id: 6,
+                title: "Digital Communication",
+                description: "Excel in video calls, chats, and virtual presentations",
+                icon: "video",
+                color: "from-indigo-500 to-violet-500",
+                modules: 9,
+                duration: "4.5 hours",
+                level: "Beginner",
+                progress: 0,
+                topics: ["Video Presence", "Chat Etiquette", "Virtual Engagement"]
+            }
+        ];
+        
+        const SCENARIOS = [
+            {
+                id: 1,
+                title: "Pitch to Investors",
+                context: "You have 5 minutes to pitch your startup to a panel of VCs",
+                timeLimit: 300,
+                checkpoints: ["Hook", "Problem", "Solution", "Market", "Ask"]
+            },
+            {
+                id: 2,
+                title: "Difficult Conversation",
+                context: "Address performance issues with a team member",
+                timeLimit: 600,
+                checkpoints: ["Empathy", "Specifics", "Impact", "Support", "Next Steps"]
+            },
+            {
+                id: 3,
+                title: "Crisis Response",
+                context: "Media interview about a company crisis",
+                timeLimit: 180,
+                checkpoints: ["Acknowledge", "Empathize", "Action", "Follow-up"]
+            }
+        ];
+        
+        // Components
+        
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const iconRef = useRef(null);
+            
+            useEffect(() => {
+                if (iconRef.current && window.lucide) {
+                    iconRef.current.innerHTML = '';
+                    const icon = window.lucide.createElement(window.lucide.icons[name]);
+                    if (icon) {
+                        icon.setAttribute('width', size);
+                        icon.setAttribute('height', size);
+                        iconRef.current.appendChild(icon);
+                    }
+                }
+            }, [name, size]);
+            
+            return <span ref={iconRef} className={className} />;
+        };
+        
+        const Button = ({ children, variant = "primary", size = "md", className = "", onClick, disabled, loading }) => {
+            const baseStyles = "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2";
+            
+            const variants = {
+                primary: "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 focus:ring-blue-500 shadow-lg hover:shadow-xl",
+                secondary: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-gray-500",
+                danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+                ghost: "text-gray-600 hover:text-gray-900 hover:bg-gray-100",
+                success: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500"
+            };
+            
+            const sizes = {
+                sm: "px-3 py-1.5 text-sm",
+                md: "px-4 py-2 text-base",
+                lg: "px-6 py-3 text-lg",
+                xl: "px-8 py-4 text-xl"
+            };
+            
+            return (
+                <button 
+                    onClick={onClick}
+                    disabled={disabled || loading}
+                    className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    {loading && (
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                        </svg>
+                    )}
+                    {children}
+                </button>
+            );
+        };
+        
+        const Card = ({ children, className = "", onClick }) => (
+            <div 
+                onClick={onClick}
+                className={`bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''} ${className}`}
+            >
+                {children}
+            </div>
+        );
+        
+        const ProgressRing = ({ progress, size = 60, strokeWidth = 4, color = "#667eea" }) => {
+            const radius = (size - strokeWidth) / 2;
+            const circumference = radius * 2 * Math.PI;
+            const offset = circumference - (progress / 100) * circumference;
+            
+            return (
+                <svg width={size} height={size} className="progress-ring">
+                    <circle
+                        stroke="#e5e7eb"
+                        strokeWidth={strokeWidth}
+                        fill="transparent"
+                        r={radius}
+                        cx={size / 2}
+                        cy={size / 2}
+                    />
+                    <circle
+                        stroke={color}
+                        strokeWidth={strokeWidth}
+                        fill="transparent"
+                        r={radius}
+                        cx={size / 2}
+                        cy={size / 2}
+                        style={{
+                            strokeDasharray: `${circumference} ${circumference}`,
+                            strokeDashoffset: offset
+                        }}
+                        className="progress-ring-circle"
+                    />
+                </svg>
+            );
+        };
+        
+        const AudioVisualizer = ({ isRecording, audioData }) => {
+            const bars = 20;
+            
+            return (
+                <div className="audio-visualizer">
+                    {Array.from({ length: bars }).map((_, i) => (
+                        <div 
+                            key={i}
+                            className="audio-bar"
+                            style={{
+                                height: isRecording ? `${Math.max(4, (audioData?.[i] || 0) * 40)}px` : '4px',
+                                opacity: isRecording ? 1 : 0.3,
+                                animationDelay: `${i * 0.05}s`
+                            }}
+                        />
+                    ))}
+                </div>
+            );
+        };
+        
+        const Toast = ({ message, type = "info", onClose }) => {
+            useEffect(() => {
+                const timer = setTimeout(onClose, 3000);
+                return () => clearTimeout(timer);
+            }, [onClose]);
+            
+            const colors = {
+                info: "bg-blue-500",
+                success: "bg-green-500",
+                warning: "bg-yellow-500",
+                error: "bg-red-500"
+            };
+            
+            return (
+                <div className={`fixed top-4 right-4 z-50 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg notification-toast flex items-center gap-2`}>
+                    <Icon name={type === "success" ? "check-circle" : type === "error" ? "x-circle" : "info"} size={20} />
+                    <span className="font-medium">{message}</span>
+                    <button onClick={onClose} className="ml-2 hover:opacity-80">
+                        <Icon name="x" size={16} />
+                    </button>
+                </div>
+            );
+        };
+        
+        const Modal = ({ isOpen, onClose, title, children, size = "md" }) => {
+            if (!isOpen) return null;
+            
+            const sizes = {
+                sm: "max-w-md",
+                md: "max-w-2xl",
+                lg: "max-w-4xl",
+                xl: "max-w-6xl",
+                full: "max-w-full mx-4"
+            };
+            
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+                    <div className={`bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
+                        {title && (
+                            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                                <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+                                <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                                    <Icon name="x" size={24} />
+                                </button>
+                            </div>
+                        )}
+                        <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+                            {children}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Main Application Components
+        
+        const LoginScreen = ({ onLogin }) => {
+            const [isLogin, setIsLogin] = useState(true);
+            const [email, setEmail] = useState("");
+            const [password, setPassword] = useState("");
+            const [name, setName] = useState("");
+            const [loading, setLoading] = useState(false);
+            
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                
+                // Simulate API call
+                setTimeout(() => {
+                    onLogin({ email, name: name || email.split('@')[0], id: Date.now() });
+                    setLoading(false);
+                }, 1500);
+            };
+            
+            return (
+                <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
+                        <div className="text-center mb-8">
+                            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                <Icon name="message-circle" size={32} className="text-white" />
+                            </div>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Communicate Pro</h1>
+                            <p className="text-gray-500">Master the art of communication</p>
+                        </div>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {!isLogin && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                    <input
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                        placeholder="John Doe"
+                                        required={!isLogin}
+                                    />
+                                </div>
+                            )}
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                    placeholder="you@example.com"
+                                    required
+                                />
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                    placeholder="••••••••"
+                                    required
+                                />
+                            </div>
+                            
+                            <Button type="submit" variant="primary" size="lg" className="w-full" loading={loading}>
+                                {isLogin ? "Sign In" : "Create Account"}
+                            </Button>
+                        </form>
+                        
+                        <div className="mt-6 text-center">
+                            <p className="text-gray-600">
+                                {isLogin ? "Don't have an account? " : "Already have an account? "}
+                                <button 
+                                    onClick={() => setIsLogin(!isLogin)}
+                                    className="text-blue-600 font-medium hover:underline"
+                                >
+                                    {isLogin ? "Sign Up" : "Sign In"}
+                                </button>
+                            </p>
+                        </div>
+                        
+                        <div className="mt-8 pt-6 border-t border-gray-100">
+                            <p className="text-xs text-center text-gray-400 mb-4">Or continue with</p>
+                            <div className="flex gap-3">
+                                <button className="flex-1 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors">
+                                    <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                                    <span className="text-sm font-medium text-gray-700">Google</span>
+                                </button>
+                                <button className="flex-1 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors">
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                                    <span className="text-sm font-medium text-gray-700">GitHub</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        const Sidebar = ({ user, activeTab, setActiveTab, onLogout, unreadCount }) => {
+            const menuItems = [
+                { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
+                { id: 'courses', label: 'Courses', icon: 'book-open' },
+                { id: 'practice', label: 'Practice Lab', icon: 'mic' },
+                { id: 'progress', label: 'My Progress', icon: 'trending-up' },
+                { id: 'community', label: 'Community', icon: 'users' },
+                { id: 'settings', label: 'Settings', icon: 'settings' }
+            ];
+            
+            return (
+                <aside className="w-64 bg-white border-r border-gray-200 h-screen sticky top-0 flex flex-col">
+                    <div className="p-6 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                <Icon name="message-circle" size={20} className="text-white" />
+                            </div>
+                            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                Communicate
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                        {menuItems.map(item => (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id)}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                                    activeTab === item.id 
+                                        ? 'bg-blue-50 text-blue-600 font-medium' 
+                                        : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                            >
+                                <Icon name={item.icon} size={20} />
+                                <span>{item.label}</span>
+                                {item.id === 'community' && unreadCount > 0 && (
+                                    <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                    </nav>
+                    
+                    <div className="p-4 border-t border-gray-100">
+                        <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-xl">
+                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                                {user.name?.[0]?.toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900 truncate">{user.name}</p>
+                                <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                            </div>
+                        </div>
+                        <Button variant="ghost" className="w-full" onClick={onLogout}>
+                            <Icon name="log-out" size={18} className="mr-2" />
+                            Sign Out
+                        </Button>
+                    </div>
+                </aside>
+            );
+        };
+        
+        const Dashboard = ({ user, courses, onStartCourse }) => {
+            const stats = [
+                { label: "Courses Completed", value: "3", icon: "award", color: "blue" },
+                { label: "Practice Hours", value: "12.5", icon: "clock", color: "purple" },
+                { label: "Current Streak", value: "7 days", icon: "flame", color: "orange" },
+                { label: "Skill Score", value: "85", icon: "target", color: "green" }
+            ];
+            
+            const recentActivity = [
+                { type: "completed", course: "Public Speaking Mastery", module: "Voice Control", time: "2 hours ago" },
+                { type: "practice", course: "Practice Lab", details: "5 min pitch recording", time: "5 hours ago" },
+                { type: "started", course: "Executive Communication", time: "1 day ago" }
+            ];
+            
+            return (
+                <div className="space-y-8">
+                    <div className="flex justify-between items-end">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, {user.name}! 👋</h1>
+                            <p className="text-gray-600">You're on a 7-day streak! Keep up the momentum.</p>
+                        </div>
+                        <Button onClick={() => onStartCourse(courses[0])}>
+                            <Icon name="play" size={18} className="mr-2" />
+                            Continue Learning
+                        </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {stats.map((stat, idx) => (
+                            <Card key={idx} className="p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className={`w-12 h-12 rounded-xl bg-${stat.color}-100 flex items-center justify-center`}>
+                                        <Icon name={stat.icon} size={24} className={`text-${stat.color}-600`} />
+                                    </div>
+                                    <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
+                                </div>
+                                <p className="text-gray-600 text-sm">{stat.label}</p>
+                            </Card>
+                        ))}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 space-y-6">
+                            <h2 className="text-xl font-bold text-gray-900">Continue Learning</h2>
+                            <div className="grid gap-4">
+                                {courses.filter(c => c.progress > 0 && c.progress < 100).map(course => (
+                                    <Card key={course.id} className="p-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${course.color} flex items-center justify-center flex-shrink-0`}>
+                                                <Icon name={course.icon} size={28} className="text-white" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="font-bold text-gray-900 mb-1">{course.title}</h3>
+                                                <p className="text-sm text-gray-600 mb-3">{course.description}</p>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                                        <div 
+                                                            className={`h-full bg-gradient-to-r ${course.color} rounded-full transition-all duration-500`}
+                                                            style={{ width: `${course.progress}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-sm font-medium text-gray-600">{course.progress}%</span>
+                                                </div>
+                                            </div>
+                                            <Button variant="secondary" size="sm" onClick={() => onStartCourse(course)}>
+                                                Resume
+                                            </Button>
+                                        </div>
+                                    </Card>
+                                ))}
+                                
+                                {courses.filter(c => c.progress > 0 && c.progress < 100).length === 0 && (
+                                    <Card className="p-8 text-center">
+                                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Icon name="book-open" size={32} className="text-gray-400" />
+                                        </div>
+                                        <h3 className="font-bold text-gray-900 mb-2">No courses in progress</h3>
+                                        <p className="text-gray-600 mb-4">Start your first course to see it here</p>
+                                        <Button onClick={() => onStartCourse(courses[0])}>Browse Courses</Button>
+                                    </Card>
+                                )}
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-6">
+                            <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
+                            <Card className="p-6">
+                                <div className="space-y-4">
+                                    {recentActivity.map((activity, idx) => (
+                                        <div key={idx} className="flex gap-4 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                                activity.type === 'completed' ? 'bg-green-100 text-green-600' :
+                                                activity.type === 'practice' ? 'bg-blue-100 text-blue-600' :
+                                                'bg-purple-100 text-purple-600'
+                                            }`}>
+                                                <Icon name={
+                                                    activity.type === 'completed' ? 'check' :
+                                                    activity.type === 'practice' ? 'mic' :
+                                                    'play'
+                                                } size={18} />
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-gray-900 text-sm">
+                                                    {activity.type === 'completed' && 'Completed '}
+                                                    {activity.type === 'practice' && 'Practiced '}
+                                                    {activity.type === 'started' && 'Started '}
+                                                    <span className="font-bold">{activity.course}</span>
+                                                </p>
+                                                {activity.module && <p className="text-sm text-gray-600">{activity.module}</p>}
+                                                {activity.details && <p className="text-sm text-gray-600">{activity.details}</p>}
+                                                <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+                            
+                            <Card className="p-6 bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                                <h3 className="font-bold mb-2">Daily Challenge</h3>
+                                <p className="text-sm text-blue-100 mb-4">Record a 2-minute impromptu speech on today's topic: "Innovation"</p>
+                                <Button variant="secondary" className="w-full bg-white text-blue-600 hover:bg-blue-50">
+                                    Start Challenge
+                                </Button>
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        const CourseCatalog = ({ courses, onStartCourse, userProgress }) => {
+            const [filter, setFilter] = useState('all');
+            const [search, setSearch] = useState('');
+            
+            const filteredCourses = courses.filter(course => {
+                const matchesFilter = filter === 'all' || 
+                    (filter === 'beginner' && course.level === 'Beginner') ||
+                    (filter === 'intermediate' && course.level === 'Intermediate') ||
+                    (filter === 'advanced' && course.level === 'Advanced') ||
+                    (filter === 'in-progress' && userProgress[course.id] > 0 && userProgress[course.id] < 100) ||
+                    (filter === 'completed' && userProgress[course.id] === 100);
+                
+                const matchesSearch = course.title.toLowerCase().includes(search.toLowerCase()) ||
+                    course.description.toLowerCase().includes(search.toLowerCase());
+                
+                return matchesFilter && matchesSearch;
+            });
+            
+            return (
+                <div className="space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Course Catalog</h1>
+                            <p className="text-gray-600">Master new skills with our expert-led courses</p>
+                        </div>
+                        
+                        <div className="flex gap-3">
+                            <div className="relative">
+                                <Icon name="search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search courses..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none w-64"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {['all', 'beginner', 'intermediate', 'advanced', 'in-progress', 'completed'].map(f => (
+                            <button
+                                key={f}
+                                onClick={() => setFilter(f)}
+                                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                                    filter === f 
+                                        ? 'bg-blue-600 text-white' 
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                            >
+                                {f.charAt(0).toUpperCase() + f.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredCourses.map(course => {
+                            const progress = userProgress[course.id] || 0;
+                            
+                            return (
+                                <Card key={course.id} className="course-card overflow-hidden group">
+                                    <div className={`h-32 bg-gradient-to-br ${course.color} relative overflow-hidden`}>
+                                        <div className="absolute inset-0 bg-black/10" />
+                                        <div className="absolute top-4 right-4">
+                                            <span className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-medium rounded-full">
+                                                {course.level}
+                                            </span>
+                                        </div>
+                                        <div className="absolute bottom-4 left-4">
+                                            <Icon name={course.icon} size={32} className="text-white" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="p-6">
+                                        <h3 className="font-bold text-xl text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                            {course.title}
+                                        </h3>
+                                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{course.description}</p>
+                                        
+                                        <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                                            <span className="flex items-center gap-1">
+                                                <Icon name="book-open" size={14} />
+                                                {course.modules} modules
+                                            </span>
+                                            <span className="flex items-center gap-1">
+                                                <Icon name="clock" size={14} />
+                                                {course.duration}
+                                            </span>
+                                        </div>
+                                        
+                                        {progress > 0 && (
+                                            <div className="mb-4">
+                                                <div className="flex justify-between text-sm mb-1">
+                                                    <span className="text-gray-600">Progress</span>
+                                                    <span className="font-medium text-gray-900">{progress}%</span>
+                                                </div>
+                                                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className={`h-full bg-gradient-to-r ${course.color} rounded-full transition-all duration-500`}
+                                                        style={{ width: `${progress}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        <div className="flex gap-2 flex-wrap mb-4">
+                                            {course.topics.slice(0, 3).map((topic, idx) => (
+                                                <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">
+                                                    {topic}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        
+                                        <Button 
+                                            variant={progress > 0 ? "secondary" : "primary"} 
+                                            className="w-full"
+                                            onClick={() => onStartCourse(course)}
+                                        >
+                                            {progress === 0 ? "Start Course" : progress === 100 ? "Review" : "Continue"}
+                                        </Button>
+                                    </div>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                    
+                    {filteredCourses.length === 0 && (
+                        <div className="text-center py-12">
+                            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Icon name="search" size={40} className="text-gray-400" />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">No courses found</h3>
+                            <p className="text-gray-600">Try adjusting your filters or search terms</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        
+        const PracticeLab = ({ onSaveRecording }) => {
+            const [isRecording, setIsRecording] = useState(false);
+            const [recordingTime, setRecordingTime] = useState(0);
+            const [audioData, setAudioData] = useState(new Array(20).fill(0));
+            const [selectedScenario, setSelectedScenario] = useState(null);
+            const [showScenarios, setShowScenarios] = useState(false);
+            const [recordings, setRecordings] = useState([]);
+            const [activeTab, setActiveTab] = useState('scenarios');
+            const mediaRecorderRef = useRef(null);
+            const audioContextRef = useRef(null);
+            const analyserRef = useRef(null);
+            const animationRef = useRef(null);
+            const timerRef = useRef(null);
+            
+            useEffect(() => {
+                return () => {
+                    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+                    if (timerRef.current) clearInterval(timerRef.current);
+                };
+            }, []);
+            
+            const startRecording = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorderRef.current = new MediaRecorder(stream);
+                    
+                    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = audioContextRef.current.createMediaStreamSource(stream);
+                    analyserRef.current = audioContextRef.current.createAnalyser();
+                    analyserRef.current.fftSize = 64;
+                    source.connect(analyserRef.current);
+                    
+                    const chunks = [];
+                    mediaRecorderRef.current.ondataavailable = (e) => chunks.push(e.data);
+                    mediaRecorderRef.current.onstop = () => {
+                        const blob = new Blob(chunks, { type: 'audio/webm' });
+                        const url = URL.createObjectURL(blob);
+                        const newRecording = {
+                            id: Date.now(),
+                            url,
+                            blob,
+                            duration: recordingTime,
+                            date: new Date(),
+                            scenario: selectedScenario?.title || 'Free Practice'
+                        };
+                        setRecordings(prev => [newRecording, ...prev]);
+                        onSaveRecording?.(newRecording);
+                    };
+                    
+                    mediaRecorderRef.current.start();
+                    setIsRecording(true);
+                    setRecordingTime(0);
+                    
+                    timerRef.current = setInterval(() => {
+                        setRecordingTime(t => t + 1);
+                    }, 1000);
+                    
+                    visualize();
+                } catch (err) {
+                    console.error("Error accessing microphone:", err);
+                    alert("Could not access microphone. Please check permissions.");
+                }
+            };
+            
+            const stopRecording = () => {
+                if (mediaRecorderRef.current && isRecording) {
+                    mediaRecorderRef.current.stop();
+                    mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+                    setIsRecording(false);
+                    clearInterval(timerRef.current);
+                    cancelAnimationFrame(animationRef.current);
+                    setAudioData(new Array(20).fill(0));
+                }
+            };
+            
+            const visualize = () => {
+                if (!analyserRef.current) return;
+                
+                const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+                analyserRef.current.getByteFrequencyData(dataArray);
+                
+                const normalized = Array.from(dataArray.slice(0, 20)).map(v => v / 255);
+                setAudioData(normalized);
+                
+                animationRef.current = requestAnimationFrame(visualize);
+            };
+            
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+            
+            const downloadRecording = (recording) => {
+                const a = document.createElement('a');
+                a.href = recording.url;
+                a.download = `practice-${new Date(recording.date).toISOString().split('T')[0]}.webm`;
+                a.click();
+            };
+            
+            const deleteRecording = (id) => {
+                setRecordings(prev => prev.filter(r => r.id !== id));
+            };
+            
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Practice Lab</h1>
+                            <p className="text-gray-600">Record yourself and improve through practice</p>
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-6">
+                            <Card className="p-8">
+                                {!selectedScenario ? (
+                                    <div className="text-center py-12">
+                                        <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Icon name="mic" size={40} className="text-blue-600" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-gray-900 mb-2">Choose a Practice Scenario</h3>
+                                        <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                                            Select from our curated scenarios or practice freestyle to improve specific skills
+                                        </p>
+                                        <Button onClick={() => setShowScenarios(true)}>
+                                            Browse Scenarios
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div>
+                                                <h3 className="text-xl font-bold text-gray-900">{selectedScenario.title}</h3>
+                                                <p className="text-gray-600">{selectedScenario.context}</p>
+                                            </div>
+                                            <button 
+                                                onClick={() => setSelectedScenario(null)}
+                                                className="text-gray-400 hover:text-gray-600"
+                                            >
+                                                <Icon name="x" size={24} />
+                                            </button>
+                                        </div>
+                                        
+                                        <div className="bg-gray-50 rounded-2xl p-8 mb-6">
+                                            <div className="flex justify-center mb-6">
+                                                <AudioVisualizer isRecording={isRecording} audioData={audioData} />
+                                            </div>
+                                            
+                                            <div className="text-center mb-6">
+                                                <div className="text-4xl font-mono font-bold text-gray-900 mb-2">
+                                                    {formatTime(recordingTime)}
+                                                </div>
+                                                <p className="text-gray-500">
+                                                    {isRecording ? "Recording in progress..." : "Ready to record"}
+                                                </p>
+                                            </div>
+                                            
+                                            <div className="flex justify-center gap-4">
+                                                {!isRecording ? (
+                                                    <Button size="xl" onClick={startRecording} className="rounded-full w-16 h-16 p-0">
+                                                        <div className="w-6 h-6 bg-white rounded-sm" />
+                                                    </Button>
+                                                ) : (
+                                                    <Button variant="danger" size="xl" onClick={stopRecording} className="rounded-full w-16 h-16 p-0">
+                                                        <div className="w-6 h-6 bg-white rounded-sm" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex gap-2 justify-center flex-wrap">
+                                            {selectedScenario.checkpoints.map((checkpoint, idx) => (
+                                                <span 
+                                                    key={idx} 
+                                                    className="px-3 py-1.5 bg-blue-50 text-blue-700 text-sm rounded-lg font-medium"
+                                                >
+                                                    {checkpoint}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </Card>
+                            
+                            <div className="flex gap-4 border-b border-gray-200">
+                                {['scenarios', 'history', 'analytics'].map(tab => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveTab(tab)}
+                                        className={`px-4 py-3 font-medium capitalize border-b-2 transition-colors ${
+                                            activeTab === tab 
+                                                ? 'border-blue-600 text-blue-600' 
+                                                : 'border-transparent text-gray-600 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
+                            </div>
+                            
+                            {activeTab === 'scenarios' && (
+                                <div className="grid gap-4">
+                                    {SCENARIOS.map(scenario => (
+                                        <Card 
+                                            key={scenario.id} 
+                                            className="p-6 cursor-pointer hover:shadow-md transition-all"
+                                            onClick={() => setSelectedScenario(scenario)}
+                                        >
+                                            <div className="flex items-start justify-between">
+                                                <div>
+                                                    <h4 className="font-bold text-gray-900 mb-1">{scenario.title}</h4>
+                                                    <p className="text-gray-600 text-sm mb-3">{scenario.context}</p>
+                                                    <div className="flex gap-2">
+                                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                                            {Math.floor(scenario.timeLimit / 60)} min
+                                                        </span>
+                                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                                            {scenario.checkpoints.length} checkpoints
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <Button variant="secondary" size="sm">Start</Button>
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </div>
+                            )}
+                            
+                            {activeTab === 'history' && (
+                                <div className="space-y-4">
+                                    {recordings.length === 0 ? (
+                                        <Card className="p-8 text-center">
+                                            <Icon name="mic-off" size={40} className="text-gray-300 mx-auto mb-4" />
+                                            <p className="text-gray-600">No recordings yet. Start practicing!</p>
+                                        </Card>
+                                    ) : (
+                                        recordings.map(recording => (
+                                            <Card key={recording.id} className="p-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                                            <Icon name="mic" size={20} className="text-blue-600" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-bold text-gray-900">{recording.scenario}</h4>
+                                                            <p className="text-sm text-gray-500">
+                                                                {recording.date.toLocaleDateString()} • {formatTime(recording.duration)}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <audio src={recording.url} controls className="h-8 w-32" />
+                                                        <button 
+                                                            onClick={() => downloadRecording(recording)}
+                                                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                        >
+                                                            <Icon name="download" size={18} />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => deleteRecording(recording.id)}
+                                                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        >
+                                                            <Icon name="trash-2" size={18} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                            
+                            {activeTab === 'analytics' && (
+                                <Card className="p-6">
+                                    <h3 className="font-bold text-gray-900 mb-4">Practice Analytics</h3>
+                                    <div className="h-64 flex items-center justify-center text-gray-400">
+                                        <div className="text-center">
+                                            <Icon name="bar-chart-2" size={48} className="mx-auto mb-2 opacity-50" />
+                                            <p>Analytics coming soon</p>
+                                        </div>
+                                    </div>
+                                </Card>
+                            )}
+                        </div>
+                        
+                        <div className="space-y-6">
+                            <Card className="p-6 bg-gradient-to-br from-purple-500 to-pink-600 text-white">
+                                <h3 className="font-bold text-lg mb-2">Pro Tip</h3>
+                                <p className="text-sm text-purple-100 mb-4">
+                                    Record yourself daily for 5 minutes. Review your recordings weekly to track improvement in pace, clarity, and filler words.
+                                </p>
+                                <div className="flex items-center gap-2 text-sm">
+                                    <Icon name="lightbulb" size={16} />
+                                    <span>Tip #42 of 100</span>
+                                </div>
+                            </Card>
+                            
+                            <Card className="p-6">
+                                <h3 className="font-bold text-gray-900 mb-4">Quick Stats</h3>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">Total Recordings</span>
+                                        <span className="font-bold text-gray-900">{recordings.length}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">Total Practice Time</span>
+                                        <span className="font-bold text-gray-900">
+                                            {formatTime(recordings.reduce((acc, r) => acc + r.duration, 0))}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">This Week</span>
+                                        <span className="font-bold text-green-600">+3</span>
+                                    </div>
+                                </div>
+                            </Card>
+                            
+                            <Card className="p-6">
+                                <h3 className="font-bold text-gray-900 mb-4">Goals</h3>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3">
+                                        <input type="checkbox" checked className="w-5 h-5 text-blue-600 rounded" readOnly />
+                                        <span className="text-gray-600 line-through">First recording</span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <input type="checkbox" checked className="w-5 h-5 text-blue-600 rounded" readOnly />
+                                        <span className="text-gray-600 line-through">5 minutes total</span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" />
+                                        <span className="text-gray-900">Complete a scenario</span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" />
+                                        <span className="text-gray-900">30 minute streak</span>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+                    </div>
+                    
+                    <Modal 
+                        isOpen={showScenarios} 
+                        onClose={() => setShowScenarios(false)} 
+                        title="Choose a Scenario"
+                    >
+                        <div className="p-6 grid gap-4">
+                            <div 
+                                className="p-4 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all"
+                                onClick={() => {
+                                    setSelectedScenario({ title: "Free Practice", context: "Practice without constraints", checkpoints: ["Introduction", "Main Points", "Conclusion"] });
+                                    setShowScenarios(false);
+                                }}
+                            >
+                                <h4 className="font-bold text-gray-900 mb-1">Free Practice</h4>
+                                <p className="text-sm text-gray-600">No prompts, practice whatever you'd like</p>
+                            </div>
+                            
+                            {SCENARIOS.map(scenario => (
+                                <div 
+                                    key={scenario.id}
+                                    className="p-4 border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md cursor-pointer transition-all"
+                                    onClick={() => {
+                                        setSelectedScenario(scenario);
+                                        setShowScenarios(false);
+                                    }}
+                                >
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h4 className="font-bold text-gray-900">{scenario.title}</h4>
+                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                            {Math.floor(scenario.timeLimit / 60)} min
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-3">{scenario.context}</p>
+                                    <div className="flex gap-2 flex-wrap">
+                                        {scenario.checkpoints.map((c, i) => (
+                                            <span key={i} className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">
+                                                {c}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </Modal>
+                </div>
+            );
+        };
+        
+        const ProgressDashboard = ({ userProgress, courses }) => {
+            const [timeRange, setTimeRange] = useState('week');
+            const chartRef = useRef(null);
+            
+            useEffect(() => {
+                if (chartRef.current) {
+                    const ctx = chartRef.current.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                            datasets: [{
+                                label: 'Practice Minutes',
+                                data: [30, 45, 20, 60, 40, 90, 30],
+                                borderColor: '#667eea',
+                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: 'rgba(0,0,0,0.05)' }
+                                },
+                                x: {
+                                    grid: { display: false }
+                                }
+                            }
+                        }
+                    });
+                }
+            }, [timeRange]);
+            
+            const skills = [
+                { name: "Public Speaking", level: 75, color: "blue" },
+                { name: "Active Listening", level: 60, color: "green" },
+                { name: "Persuasion", level: 45, color: "purple" },
+                { name: "Writing", level: 80, color: "orange" },
+                { name: "Conflict Resolution", level: 30, color: "red" }
+            ];
+            
+            const achievements = [
+                { name: "First Steps", desc: "Complete your first course", earned: true, icon: "footprints" },
+                { name: "Consistency", desc: "7-day practice streak", earned: true, icon: "flame" },
+                { name: "Century Club", desc: "100 minutes of practice", earned: false, icon: "clock" },
+                { name: "Feedback Star", desc: "Give 10 peer reviews", earned: false, icon: "star" }
+            ];
+            
+            const generatePDF = async () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Header
+                doc.setFillColor(102, 126, 234);
+                doc.rect(0, 0, 210, 40, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(24);
+                doc.text("Communicate Pro", 20, 25);
+                doc.setFontSize(12);
+                doc.text("Progress Report", 20, 35);
+                
+                // User Info
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(14);
+                doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 55);
+                
+                // Skills Section
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text("Skill Assessment", 20, 75);
+                
+                let y = 85;
+                skills.forEach(skill => {
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(skill.name, 20, y);
+                    doc.setFillColor(229, 231, 235);
+                    doc.rect(80, y - 5, 100, 8, 'F');
+                    doc.setFillColor(102, 126, 234);
+                    doc.rect(80, y - 5, skill.level, 8, 'F');
+                    doc.text(`${skill.level}%`, 185, y);
+                    y += 15;
+                });
+                
+                // Courses Section
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text("Course Progress", 20, y + 10);
+                
+                y += 25;
+                courses.forEach(course => {
+                    const progress = userProgress[course.id] || 0;
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(course.title, 20, y);
+                    doc.text(`${progress}%`, 180, y);
+                    y += 10;
+                });
+                
+                doc.save('communicate-pro-progress.pdf');
+            };
+            
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Progress</h1>
+                            <p className="text-gray-600">Track your growth and celebrate milestones</p>
+                        </div>
+                        <Button variant="secondary" onClick={generatePDF}>
+                            <Icon name="download" size={18} className="mr-2" />
+                            Export PDF
+                        </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-6">
+                            <Card className="p-6">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="font-bold text-gray-900">Practice Activity</h3>
+                                    <div className="flex gap-2">
+                                        {['week', 'month', 'year'].map(range => (
+                                            <button
+                                                key={range}
+                                                onClick={() => setTimeRange(range)}
+                                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
+                                                    timeRange === range 
+                                                        ? 'bg-blue-100 text-blue-700' 
+                                                        : 'text-gray-600 hover:bg-gray-100'
+                                                }`}
+                                            >
+                                                {range}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="h-64">
+                                    <canvas ref={chartRef}></canvas>
+                                </div>
+                            </Card>
+                            
+                            <Card className="p-6">
+                                <h3 className="font-bold text-gray-900 mb-6">Skill Breakdown</h3>
+                                <div className="space-y-4">
+                                    {skills.map(skill => (
+                                        <div key={skill.name}>
+                                            <div className="flex justify-between mb-2">
+                                                <span className="font-medium text-gray-700">{skill.name}</span>
+                                                <span className="text-gray-900 font-bold">{skill.level}%</span>
+                                            </div>
+                                            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                                                <div 
+                                                    className={`h-full bg-${skill.color}-500 rounded-full transition-all duration-1000`}
+                                                    style={{ width: `${skill.level}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+                        </div>
+                        
+                        <div className="space-y-6">
+                            <Card className="p-6">
+                                <h3 className="font-bold text-gray-900 mb-4">Achievements</h3>
+                                <div className="space-y-3">
+                                    {achievements.map(achievement => (
+                                        <div 
+                                            key={achievement.name} 
+                                            className={`flex items-center gap-4 p-3 rounded-xl ${
+                                                achievement.earned ? 'bg-yellow-50' : 'bg-gray-50 opacity-60'
+                                            }`}
+                                        >
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                                                achievement.earned ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-200 text-gray-400'
+                                            }`}>
+                                                <Icon name={achievement.icon} size={24} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className={`font-bold ${achievement.earned ? 'text-gray-900' : 'text-gray-500'}`}>
+                                                    {achievement.name}
+                                                </h4>
+                                                <p className="text-sm text-gray-600">{achievement.desc}</p>
+                                            </div>
+                                            {achievement.earned && (
+                                                <Icon name="check-circle" size={20} className="text-yellow-600" />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+                            
+                            <Card className="p-6 bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                                <h3 className="font-bold text-lg mb-2">Weekly Goal</h3>
+                                <div className="mb-4">
+                                    <div className="flex justify-between text-sm mb-2">
+                                        <span>Progress</span>
+                                        <span>75%</span>
+                                    </div>
+                                    <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                                        <div className="h-full bg-white rounded-full" style={{ width: '75%' }} />
+                                    </div>
+                                </div>
+                                <p className="text-sm text-blue-100">
+                                    30 more minutes to reach your weekly goal of 2 hours!
+                                </p>
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        const Community = () => {
+            const [posts, setPosts] = useState([
+                {
+                    id: 1,
+                    author: "Sarah Chen",
+                    avatar: "SC",
+                    role: "Product Manager",
+                    content: "Just completed the Executive Communication course! The section on stakeholder management was game-changing. Highly recommend for anyone preparing for leadership roles.",
+                    likes: 24,
+                    comments: 8,
+                    time: "2 hours ago",
+                    tags: ["Leadership", "Review"]
+                },
+                {
+                    id: 2,
+                    author: "Marcus Johnson",
+                    avatar: "MJ",
+                    role: "Sales Director",
+                    content: "Looking for practice partners for pitch scenarios. I'm free weekday evenings EST. DM me if interested!",
+                    likes: 12,
+                    comments: 15,
+                    time: "5 hours ago",
+                    tags: ["Collaboration", "Practice"]
+                },
+                {
+                    id: 3,
+                    author: "Emily Rodriguez",
+                    avatar: "ER",
+                    role: "Consultant",
+                    content: "Struggling with filler words in my recordings. Any tips? I've tried the pause technique but still catch myself saying 'um' frequently.",
+                    likes: 8,
+                    comments: 22,
+                    time: "1 day ago",
+                    tags: ["Help", "Speaking"]
+                }
+            ]);
+            
+            const [newPost, setNewPost] = useState("");
+            
+            const handlePost = () => {
+                if (!newPost.trim()) return;
+                
+                const post = {
+                    id: Date.now(),
+                    author: "You",
+                    avatar: "YO",
+                    role: "Student",
+                    content: newPost,
+                    likes: 0,
+                    comments: 0,
+                    time: "Just now",
+                    tags: ["Discussion"]
+                };
+                
+                setPosts([post, ...posts]);
+                setNewPost("");
+            };
+            
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Community</h1>
+                            <p className="text-gray-600">Connect, share, and learn together</p>
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-6">
+                            <Card className="p-6">
+                                <div className="flex gap-4">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                                        YO
+                                    </div>
+                                    <div className="flex-1">
+                                        <textarea
+                                            value={newPost}
+                                            onChange={(e) => setNewPost(e.target.value)}
+                                            placeholder="Share your progress, ask questions, or offer advice..."
+                                            className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 outline-none"
+                                            rows={3}
+                                        />
+                                        <div className="flex justify-between items-center mt-3">
+                                            <div className="flex gap-2">
+                                                <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                                                    <Icon name="image" size={18} />
+                                                </button>
+                                                <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                                                    <Icon name="mic" size={18} />
+                                                </button>
+                                                <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                                                    <Icon name="hash" size={18} />
+                                                </button>
+                                            </div>
+                                            <Button size="sm" onClick={handlePost} disabled={!newPost.trim()}>
+                                                Post
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
+                            
+                            <div className="space-y-4">
+                                {posts.map(post => (
+                                    <Card key={post.id} className="p-6">
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                                {post.avatar}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h4 className="font-bold text-gray-900">{post.author}</h4>
+                                                    <span className="text-gray-500 text-sm">•</span>
+                                                    <span className="text-gray-500 text-sm">{post.role}</span>
+                                                    <span className="text-gray-400 text-sm ml-auto">{post.time}</span>
+                                                </div>
+                                                <p className="text-gray-700 mb-3">{post.content}</p>
+                                                <div className="flex gap-2 mb-4">
+                                                    {post.tags.map(tag => (
+                                                        <span key={tag} className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">
+                                                            #{tag}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <div className="flex items-center gap-6 text-gray-500">
+                                                    <button className="flex items-center gap-2 hover:text-red-500 transition-colors">
+                                                        <Icon name="heart" size={18} />
+                                                        <span className="text-sm">{post.likes}</span>
+                                                    </button>
+                                                    <button className="flex items-center gap-2 hover:text-blue-500 transition-colors">
+                                                        <Icon name="message-circle" size={18} />
+                                                        <span className="text-sm">{post.comments}</span>
+                                                    </button>
+                                                    <button className="flex items-center gap-2 hover:text-blue-500 transition-colors">
+                                                        <Icon name="share-2" size={18} />
+                                                        <span className="text-sm">Share</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-6">
+                            <Card className="p-6">
+                                <h3 className="font-bold text-gray-900 mb-4">Trending Topics</h3>
+                                <div className="space-y-3">
+                                    {["#PublicSpeaking", "#Leadership", "#PitchPractice", "#CareerGrowth", "#Feedback"].map(tag => (
+                                        <div key={tag} className="flex items-center justify-between">
+                                            <span className="text-blue-600 font-medium">{tag}</span>
+                                            <span className="text-gray-400 text-sm">{Math.floor(Math.random() * 100)} posts</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+                            
+                            <Card className="p-6">
+                                <h3 className="font-bold text-gray-900 mb-4">Top Contributors</h3>
+                                <div className="space-y-3">
+                                    {[
+                                        { name: "Sarah Chen", contributions: 156 },
+                                        { name: "Marcus Johnson", contributions: 142 },
+                                        { name: "Emily Rodriguez", contributions: 98 }
+                                    ].map((user, idx) => (
+                                        <div key={user.name} className="flex items-center gap-3">
+                                            <span className="text-gray-400 font-bold w-6">#{idx + 1}</span>
+                                            <div className="w-8 h-8 bg-gray-200 rounded-full" />
+                                            <div className="flex-1">
+                                                <p className="font-medium text-gray-900 text-sm">{user.name}</p>
+                                                <p className="text-xs text-gray-500">{user.contributions} contributions</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+                            
+                            <Card className="p-6 bg-gradient-to-br from-green-500 to-emerald-600 text-white">
+                                <h3 className="font-bold text-lg mb-2">Weekly Challenge</h3>
+                                <p className="text-sm text-green-100 mb-4">
+                                    Post a 1-minute video introducing yourself and get feedback from the community!
+                                </p>
+                                <Button variant="secondary" className="w-full bg-white text-green-600 hover:bg-green-50">
+                                    Join Challenge
+                                </Button>
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        const Settings = ({ user, onUpdateUser }) => {
+            const [notifications, setNotifications] = useState({
+                email: true,
+                push: true,
+                weekly: true,
+                reminders: false
+            });
+            
+            const [profile, setProfile] = useState({
+                name: user.name,
+                email: user.email,
+                bio: "Passionate about improving communication skills",
+                goals: "Become a confident public speaker"
+            });
+            
+            return (
+                <div className="max-w-3xl space-y-6">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
+                        <p className="text-gray-600">Manage your account and preferences</p>
+                    </div>
+                    
+                    <Card className="p-6">
+                        <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
+                            <Icon name="user" size={20} />
+                            Profile Information
+                        </h3>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-6 mb-6">
+                                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                                    {profile.name[0]}
+                                </div>
+                                <div>
+                                    <Button variant="secondary" size="sm">Change Photo</Button>
+                                    <p className="text-sm text-gray-500 mt-2">JPG, PNG or GIF. Max 2MB.</p>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                    <input
+                                        type="text"
+                                        value={profile.name}
+                                        onChange={(e) => setProfile({...profile, name: e.target.value})}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input
+                                        type="email"
+                                        value={profile.email}
+                                        onChange={(e) => setProfile({...profile, email: e.target.value})}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                                <textarea
+                                    value={profile.bio}
+                                    onChange={(e) => setProfile({...profile, bio: e.target.value})}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    rows={3}
+                                />
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Learning Goals</label>
+                                <textarea
+                                    value={profile.goals}
+                                    onChange={(e) => setProfile({...profile, goals: e.target.value})}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    rows={2}
+                                />
+                            </div>
+                            
+                            <div className="pt-4">
+                                <Button onClick={() => onUpdateUser(profile)}>Save Changes</Button>
+                            </div>
+                        </div>
+                    </Card>
+                    
+                    <Card className="p-6">
+                        <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
+                            <Icon name="bell" size={20} />
+                            Notifications
+                        </h3>
+                        <div className="space-y-4">
+                            {[
+                                { key: 'email', label: 'Email Notifications', desc: 'Receive course updates and newsletters' },
+                                { key: 'push', label: 'Push Notifications', desc: 'Get notified about reminders and messages' },
+                                { key: 'weekly', label: 'Weekly Progress', desc: 'Weekly summary of your learning activity' },
+                                { key: 'reminders', label: 'Practice Reminders', desc: 'Daily reminders to practice' }
+                            ].map(setting => (
+                                <div key={setting.key} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                                    <div>
+                                        <p className="font-medium text-gray-900">{setting.label}</p>
+                                        <p className="text-sm text-gray-500">{setting.desc}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setNotifications({...notifications, [setting.key]: !notifications[setting.key]})}
+                                        className={`w-12 h-6 rounded-full transition-colors relative ${
+                                            notifications[setting.key] ? 'bg-blue-600' : 'bg-gray-300'
+                                        }`}
+                                    >
+                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${
+                                            notifications[setting.key] ? 'left-7' : 'left-1'
+                                        }`} />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </Card>
+                    
+                    <Card className="p-6 border-red-200">
+                        <h3 className="font-bold text-red-600 mb-4 flex items-center gap-2">
+                            <Icon name="alert-triangle" size={20} />
+                            Danger Zone
+                        </h3>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium text-gray-900">Export Data</p>
+                                    <p className="text-sm text-gray-500">Download all your data</p>
+                                </div>
+                                <Button variant="secondary" size="sm">Export</Button>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium text-gray-900">Delete Account</p>
+                                    <p className="text-sm text-gray-500">Permanently delete your account and data</p>
+                                </div>
+                                <Button variant="danger" size="sm">Delete</Button>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            );
+        };
+        
+        const CoursePlayer = ({ course, onClose, onComplete, progress }) => {
+            const [currentModule, setCurrentModule] = useState(0);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [showQuiz, setShowQuiz] = useState(false);
+            const [quizAnswers, setQuizAnswers] = useState({});
+            
+            const modules = [
+                { title: "Introduction", duration: "5:00", type: "video" },
+                { title: "Core Concepts", duration: "12:00", type: "video" },
+                { title: "Practical Exercise", duration: "15:00", type: "interactive" },
+                { title: "Case Study", duration: "10:00", type: "video" },
+                { title: "Knowledge Check", duration: "5:00", type: "quiz" }
+            ];
+            
+            const handleNext = () => {
+                if (currentModule < modules.length - 1) {
+                    setCurrentModule(currentModule + 1);
+                    setIsPlaying(false);
+                } else {
+                    onComplete(course.id);
+                }
+            };
+            
+            return (
+                <div className="fixed inset-0 z-50 bg-gray-900 flex">
+                    <div className="flex-1 flex flex-col">
+                        <div className="h-16 bg-gray-800 flex items-center justify-between px-6">
+                            <div className="flex items-center gap-4">
+                                <button onClick={onClose} className="text-gray-400 hover:text-white">
+                                    <Icon name="x" size={24} />
+                                </button>
+                                <h2 className="text-white font-bold">{course.title}</h2>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="w-48 h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-blue-500 rounded-full"
+                                        style={{ width: `${((currentModule + 1) / modules.length) * 100}%` }}
+                                    />
+                                </div>
+                                <span className="text-gray-400 text-sm">
+                                    {currentModule + 1} / {modules.length}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div className="flex-1 bg-black flex items-center justify-center relative">
+                            {modules[currentModule].type === 'video' && (
+                                <div className="text-center text-white">
+                                    <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 cursor-pointer hover:bg-white/20 transition-colors" onClick={() => setIsPlaying(!isPlaying)}>
+                                        <Icon name={isPlaying ? "pause" : "play"} size={40} />
+                                    </div>
+                                    <p className="text-xl font-medium">{modules[currentModule].title}</p>
+                                    <p className="text-gray-400 mt-2">Video Content Placeholder</p>
+                                </div>
+                            )}
+                            
+                            {modules[currentModule].type === 'interactive' && (
+                                <div className="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4">
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-4">Interactive Exercise</h3>
+                                    <p className="text-gray-600 mb-6">Practice what you've learned with this hands-on exercise.</p>
+                                    <div className="bg-gray-50 p-6 rounded-xl mb-6">
+                                        <p className="font-medium text-gray-900 mb-2">Scenario:</p>
+                                        <p className="text-gray-600">You're in a meeting and need to present your ideas clearly. Record yourself summarizing the key points in 60 seconds.</p>
+                                    </div>
+                                    <Button onClick={() => {}}>
+                                        <Icon name="mic" size={18} className="mr-2" />
+                                        Start Recording
+                                    </Button>
+                                </div>
+                            )}
+                            
+                            {modules[currentModule].type === 'quiz' && (
+                                <div className="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4">
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Knowledge Check</h3>
+                                    <div className="space-y-6">
+                                        <div>
+                                            <p className="font-medium text-gray-900 mb-3">1. What is the most important aspect of active listening?</p>
+                                            <div className="space-y-2">
+                                                {["Waiting for your turn to speak", "Making eye contact", "Paraphrasing what you heard", "Taking notes"].map((opt, i) => (
+                                                    <label key={i} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                                                        <input type="radio" name="q1" className="w-4 h-4 text-blue-600" />
+                                                        <span className="text-gray-700">{opt}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div className="h-20 bg-gray-800 flex items-center justify-between px-6">
+                            <Button variant="ghost" onClick={() => setCurrentModule(Math.max(0, currentModule - 1))} disabled={currentModule === 0}>
+                                <Icon name="chevron-left" size={18} className="mr-2" />
+                                Previous
+                            </Button>
+                            <Button onClick={handleNext}>
+                                {currentModule === modules.length - 1 ? 'Complete Course' : 'Next Module'}
+                                <Icon name="chevron-right" size={18} className="ml-2" />
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    <div className="w-80 bg-gray-800 border-l border-gray-700 p-6 overflow-y-auto">
+                        <h3 className="text-white font-bold mb-4">Course Content</h3>
+                        <div className="space-y-2">
+                            {modules.map((module, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setCurrentModule(idx)}
+                                    className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors ${
+                                        currentModule === idx ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700'
+                                    }`}
+                                >
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                                        idx < currentModule ? 'bg-green-500 text-white' :
+                                        currentModule === idx ? 'bg-white/20' : 'bg-gray-700'
+                                    }`}>
+                                        {idx < currentModule ? <Icon name="check" size={14} /> : idx + 1}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className={`font-medium ${currentModule === idx ? 'text-white' : 'text-gray-300'}`}>{module.title}</p>
+                                        <p className="text-xs opacity-70">{module.duration}</p>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Main App Component
+        
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [courses, setCourses] = useState(COURSES);
+            const [userProgress, setUserProgress] = useState({});
+            const [activeCourse, setActiveCourse] = useState(null);
+            const [notifications, setNotifications] = useState([]);
+            const [unreadCount, setUnreadCount] = useState(3);
+            const [toast, setToast] = useState(null);
+            
+            useEffect(() => {
+                // Check for saved session
+                const savedUser = localStorage.getItem('communicateProUser');
+                if (savedUser) {
+                    setUser(JSON.parse(savedUser));
+                }
+                
+                // Request notification permission
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            }, []);
+            
+            const handleLogin = (userData) => {
+                setUser(userData);
+                localStorage.setItem('communicateProUser', JSON.stringify(userData));
+                showToast('Welcome back! Ready to improve your communication skills?', 'success');
+            };
+            
+            const handleLogout = () => {
+                setUser(null);
+                localStorage.removeItem('communicateProUser');
+                setActiveTab('dashboard');
+            };
+            
+            const showToast = (message, type = 'info') => {
+                setToast({ message, type });
+            };
+            
+            const handleStartCourse = (course) => {
+                setActiveCourse(course);
+            };
+            
+            const handleCompleteCourse = (courseId) => {
+                setUserProgress({...userProgress, [courseId]: 100});
+                setActiveCourse(null);
+                showToast('Congratulations! Course completed successfully!', 'success');
+                
+                // Update courses state
+                setCourses(courses.map(c => 
+                    c.id === courseId ? {...c, progress: 100} : c
+                ));
+            };
+            
+            const handleSaveRecording = (recording) => {
+                showToast('Recording saved successfully!', 'success');
+            };
+            
+            const handleUpdateUser = (updates) => {
+                const updatedUser = {...user, ...updates};
+                setUser(updatedUser);
+                localStorage.setItem('communicateProUser', JSON.stringify(updatedUser));
+                showToast('Profile updated successfully!', 'success');
+            };
+            
+            if (!user) {
+                return <LoginScreen onLogin={handleLogin} />;
+            }
+            
+            return (
+                <AppContext.Provider value={{ user, showToast }}>
+                    <div className="flex min-h-screen bg-gray-50">
+                        <Sidebar 
+                            user={user} 
+                            activeTab={activeTab} 
+                            setActiveTab={setActiveTab}
+                            onLogout={handleLogout}
+                            unreadCount={unreadCount}
+                        />
+                        
+                        <main className="flex-1 p-8 overflow-y-auto">
+                            {activeTab === 'dashboard' && (
+                                <Dashboard 
+                                    user={user} 
+                                    courses={courses} 
+                                    onStartCourse={handleStartCourse}
+                                />
+                            )}
+                            
+                            {activeTab === 'courses' && (
+                                <CourseCatalog 
+                                    courses={courses}
+                                    onStartCourse={handleStartCourse}
+                                    userProgress={userProgress}
+                                />
+                            )}
+                            
+                            {activeTab === 'practice' && (
+                                <PracticeLab onSaveRecording={handleSaveRecording} />
+                            )}
+                            
+                            {activeTab === 'progress' && (
+                                <ProgressDashboard 
+                                    userProgress={userProgress}
+                                    courses={courses}
+                                />
+                            )}
+                            
+                            {activeTab === 'community' && (
+                                <Community />
+                            )}
+                            
+                            {activeTab === 'settings' && (
+                                <Settings user={user} onUpdateUser={handleUpdateUser} />
+                            )}
+                        </main>
+                        
+                        {activeCourse && (
+                            <CoursePlayer 
+                                course={activeCourse}
+                                onClose={() => setActiveCourse(null)}
+                                onComplete={handleCompleteCourse}
+                                progress={userProgress[activeCourse.id] || 0}
+                            />
+                        )}
+                        
+                        {toast && (
+                            <Toast 
+                                message={toast.message} 
+                                type={toast.type} 
+                                onClose={() => setToast(null)} 
+                            />
+                        )}
+                    </div>
+                </AppContext.Provider>
+            );
+        };
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
